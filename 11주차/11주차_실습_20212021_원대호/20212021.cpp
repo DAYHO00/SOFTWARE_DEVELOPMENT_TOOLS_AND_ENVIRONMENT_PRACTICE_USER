@@ -1,0 +1,119 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+char** maze;
+int ROW, COL, w, h;
+
+int F_Parent(int x, int* set) {
+    while (set[x] != x) {
+        set[x] = set[set[x]];
+        x = set[x];
+    }
+    return x;
+}
+
+void U_Parent(int x, int y, int* set) {
+    x = F_Parent(x, set);
+    y = F_Parent(y, set);
+    set[(x < y) ? y : x] = (x < y) ? x : y;
+}
+
+void MakeMaze() {
+    int* set = new int[w * h];
+    for (int i = 0; i < w * h; i++) {
+        set[i] = i;
+    }
+
+    vector<pair<int, pair<int, int>>> edges;
+    for (int i = 1; i < ROW; i += 2) {
+        for (int j = 1; j < COL; j += 2) {
+            if (j + 2 < COL) {
+                edges.push_back({ rand(), {i * COL + j, i * COL + j + 2} });
+            }
+            if (i + 2 < ROW) {
+                edges.push_back({ rand(), {i * COL + j, (i + 2) * COL + j} });
+            }
+        }
+    }
+
+    sort(edges.begin(), edges.end());
+
+    for (auto& edge : edges) {
+        int x1 = edge.second.first / COL;
+        int y1 = edge.second.first % COL;
+        int x2 = edge.second.second / COL;
+        int y2 = edge.second.second % COL;
+
+        int cur_N = (x1 / 2) * (COL / 2) + (y1 / 2);
+        int next_N = (x2 / 2) * (COL / 2) + (y2 / 2);
+
+        int cur_P = F_Parent(cur_N, set);
+        int next_P = F_Parent(next_N, set);
+
+        if (cur_P != next_P) {
+            maze[(x1 + x2) / 2][(y1 + y2) / 2] = ' ';
+            U_Parent(cur_P, next_P, set);
+        }
+    }
+
+    delete[] set;
+}
+
+int main() {
+    cin >> w >> h;
+
+    COL = 2 * w + 1;
+    ROW = 2 * h + 1;
+
+    maze = new char* [ROW];
+    for (int i = 0; i < ROW; i++) {
+        maze[i] = new char[COL];
+    }
+
+    srand(time(NULL));
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            if (i % 2 == 0) {
+                maze[i][j] = (j % 2 == 0) ? '+' : '-';
+            }
+            else {
+                maze[i][j] = (j % 2 == 0) ? '|' : ' ';
+            }
+        }
+    }
+    MakeMaze();
+
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            cout << maze[i][j];
+        }
+        cout << endl;
+    }
+
+    ofstream fp("result.maz");
+    if (!fp) {
+        cout << "Error: File Open Fail" << endl;
+        return 1;
+    }
+
+    for (int i = 0; i < ROW; i++) {
+        for (int j = 0; j < COL; j++) {
+            fp << maze[i][j];
+        }
+        fp << endl;
+    }
+    fp.close();
+
+    for (int i = 0; i < ROW; i++) {
+        delete[] maze[i];
+    }
+    delete[] maze;
+
+    return 0;
+}
