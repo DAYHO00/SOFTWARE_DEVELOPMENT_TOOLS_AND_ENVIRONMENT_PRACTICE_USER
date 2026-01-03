@@ -38,9 +38,9 @@
 ---
 
 ## 🛠 기술 스택
-Language : C / C++
-Tools : gcc, Makefile
-Environment : Linux
+- Language : C / C++
+- Tools : gcc, Makefile
+- Environment : Linux
 
 ---
 
